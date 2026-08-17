@@ -112,7 +112,7 @@ This visualization puts six key features side by side, making it easy to see whi
 
 ## 5. Machine Learning Model
 
-After understanding the data, I built a machine learning model to predict diabetes.
+After understanding the data, I built machine learning models to predict diabetes. I tried Logistic Regression, Decision Tree, and Random Forest to compare their performance.
 
 ### Model Selection
 
@@ -121,6 +121,7 @@ I chose Logistic Regression because:
 - It works well for binary classification problems (diabetic or not)
 - It provides probability estimates, not just class labels
 - It trains quickly and requires minimal tuning
+- With feature scaling, it converges reliably and the coefficients directly show each feature's impact
 
 ### Data Preparation
 
@@ -128,31 +129,63 @@ I split the data into training and testing sets using an 80-20 split with random
 
 X contains all feature columns (Pregnancies through Age), and Y contains only the Outcome column.
 
+I also applied feature scaling using `StandardScaler` on the training and test sets. The features in this dataset have very different ranges — Glucose goes up to 200 while DiabetesPedigreeFunction is usually below 1. Scaling puts them all on the same scale so Logistic Regression can converge faster and give more stable results. Note that Decision Trees and Random Forests don't need scaling since they split on individual features regardless of scale.
+
 ### Model Training and Evaluation
 
-I trained the Logistic Regression model on the training set using model.fit(X_train, Y_train).
+I trained the Logistic Regression model on the scaled training set using `model.fit(X_train_scaled, Y_train)`.
 
-The model achieved an accuracy of 78-79% on the test set, depending on the random seed. This means it correctly predicts whether a patient has diabetes about 78-79% of the time.
+**Training Performance:**
+- Training accuracy: 77.20%
+- Training precision: 0.72, recall: 0.56, F1: 0.63
 
-The confusion matrix shows:
-- True Negatives (correctly predicted non-diabetic): ~110 patients
-- False Positives (incorrectly predicted diabetic): ~15 patients  
-- False Negatives (incorrectly predicted non-diabetic): ~13 patients
-- True Positives (correctly predicted diabetic): ~16 patients
+**Test Performance:**
+- Test accuracy: 75.32%
+- Test precision: 0.67, recall: 0.62, F1: 0.64
+
+The training and test accuracy are close (gap of only 1.9%), which tells me the model is not overfitting. It generalizes reasonably well to unseen data. If the training accuracy were much higher than the test accuracy (say 99% vs 75%), that would signal overfitting — the model memorized the training data instead of learning general patterns.
+
+The confusion matrix on the test set shows:
+- True Negatives (correctly predicted non-diabetic): 82 patients
+- False Positives (incorrectly predicted diabetic): 17 patients  
+- False Negatives (incorrectly predicted non-diabetic): 21 patients
+- True Positives (correctly predicted diabetic): 34 patients
 
 The classification report shows:
-- Precision for non-diabetic class: ~0.88 (when we predict non-diabetic, we're right 88% of the time)
-- Recall for non-diabetic class: ~0.88 (we correctly identify 88% of actual non-diabetic patients)
-- Precision for diabetic class: ~0.52 (when we predict diabetic, we're right 52% of the time)
-- Recall for diabetic class: ~0.55 (we correctly identify 55% of actual diabetic patients)
+- Precision for non-diabetic class: 0.80 (when we predict non-diabetic, we're right 80% of the time)
+- Recall for non-diabetic class: 0.83 (we correctly identify 83% of actual non-diabetic patients)
+- Precision for diabetic class: 0.67 (when we predict diabetic, we're right 67% of the time)
+- Recall for diabetic class: 0.62 (we correctly identify 62% of actual diabetic patients)
 
 The model is much better at predicting non-diabetic cases than diabetic cases. This is partly because there are fewer diabetic cases in the dataset (the class imbalance we noticed earlier).
+
+### Model Comparison
+
+I also tried two other algorithms to compare performance:
+
+**Decision Tree Classifier:**
+- Test accuracy: 72.08%
+- Training accuracy: 100% (perfect)
+- Overfitting gap: 27.9%
+- Uses unscaled data (tree-based models don't require scaling)
+
+The Decision Tree memorized the training data completely but performed worse on test data. This is a classic example of overfitting — the tree grew too complex and learned noise instead of general patterns.
+
+**Random Forest Classifier (100 trees):**
+- Test accuracy: 75.32%
+- Training accuracy: 100%
+- Overfitting gap: 24.7%
+- Uses unscaled data
+
+Random Forest matched Logistic Regression on test accuracy but also overfit on training data. Despite using 100 trees, it still memorized the training set. The feature importances from Random Forest confirmed that Glucose (0.26), BMI (0.17), and Age (0.13) are the top three predictors.
+
+**Best model:** Logistic Regression — same test accuracy as Random Forest but without overfitting (gap: 1.9% vs 24.7%), simpler to interpret, and faster to train.
 
 ## 6. Key Findings and Insights
 
 Q. What are the most important features for predicting diabetes?
 
-- Glucose level is by far the most important predictor, with a correlation of 0.47 with the outcome. BMI (0.29) and Age (0.24) are the next most important.
+- Glucose level is by far the most important predictor, with a correlation of 0.47 with the outcome. BMI (0.29) and Age (0.24) are the next most important. Random Forest's feature importance scores agree: Glucose (0.26), BMI (0.17), Age (0.13).
 
 Q. How do diabetic and non-diabetic patients differ?
 
@@ -160,14 +193,24 @@ Q. How do diabetic and non-diabetic patients differ?
 
 Q. How well does the model perform?
 
-- The model achieves 78-79% overall accuracy. It's better at identifying non-diabetic patients than diabetic ones, which is a common challenge with imbalanced datasets.
+- The Logistic Regression model achieves 75.32% overall accuracy. It's better at identifying non-diabetic patients (83% recall) than diabetic ones (62% recall), which is a common challenge with imbalanced datasets.
+
+Q. What is the most important performance metric for this problem?
+
+- For diabetes prediction, **recall for the diabetic class** is the most important metric. A false negative (telling a diabetic patient they're fine) is much more dangerous than a false positive (telling a healthy patient they might have diabetes). Missing an actual diabetic case could delay treatment and lead to serious health complications. So even though our overall accuracy is 75%, the 62% recall for diabetic patients means we're missing 38% of actual cases — that's a real limitation for a medical application.
+
+Q. What are the limitations of this model?
+
+- The dataset is small (768 patients) and imbalanced (65% non-diabetic, 35% diabetic). The model struggles with the minority class. The features are limited to basic medical measurements — adding more clinical data like HbA1c levels, family history details, or lifestyle factors could help. Mean imputation for missing values introduces some bias since we're guessing based on averages. The model also doesn't capture non-linear relationships between features.
 
 Q. What would improve the model?
 
-- Handling the class imbalance (more diabetic samples or weighted loss), trying other algorithms like Random Forest or SVM, feature engineering to create new predictive features, or hyperparameter tuning.
+- Handling the class imbalance using SMOTE (synthetic minority oversampling) or class weights, trying Gradient Boosting or XGBoost which often outperform basic models on tabular data, engineering new features like glucose-to-insulin ratio, and hyperparameter tuning using grid search.
 
 ## 7. Conclusion
 
-This assignment taught me the complete machine learning workflow from data loading and cleaning through model building and evaluation. I learned how to handle missing values and zero values that don't make medical sense, how to explore data using statistics and visualization, and how to build and evaluate a classifier.
+This assignment taught me the complete machine learning workflow from data loading and cleaning through model building and evaluation. I learned how to handle missing values and zero values that don't make medical sense, how to explore data using statistics and visualization, and how to build and evaluate classifiers.
+
+I tried three algorithms — Logistic Regression, Decision Tree, and Random Forest. Logistic Regression and Random Forest both achieved 75.32% test accuracy, but Logistic Regression was the better choice because it didn't overfit. The Decision Tree overfit badly (100% training, 72% test), showing why simpler models can sometimes be more reliable.
 
 The most important takeaway is that Glucose level is a strong predictor of diabetes, followed by BMI and Age. The model's lower performance on the diabetic class shows why handling imbalanced datasets is important in real-world machine learning projects. If this were a medical application, we might prioritize reducing false negatives (missing actual diabetic cases) over false positives, even if it meant lower overall accuracy.
