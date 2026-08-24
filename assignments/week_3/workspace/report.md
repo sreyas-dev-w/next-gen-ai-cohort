@@ -8,8 +8,6 @@ This document is a summary of my answers. For every question I give the full pro
 
 ## Section 1: Ambiguity + Incomplete Context
 
----
-
 ### Q1. Consulting Case – Messy Client Problem
 
 My prompt:
@@ -72,8 +70,6 @@ Alternative: Ask the model to first extract raw facts verbatim into a table, the
 
 ## Section 2: Prompt Robustness + Adversarial Inputs
 
----
-
 ### Q3. Prompt Injection Attack
 
 My prompt:
@@ -134,8 +130,6 @@ Alternative: Few-shot with 2-3 before/after pairs showing biased input transform
 
 ## Section 3: Multi-Step Reasoning Design
 
----
-
 ### Q5. Financial Fraud Detection
 
 My prompt:
@@ -192,8 +186,6 @@ Alternative: Ask the model to argue both sides fully (enter vs don't enter) in t
 
 ## Section 4: Few-Shot vs Zero-Shot Judgment
 
----
-
 ### Q7. Classification with Edge Cases
 
 Zero-shot prompt:
@@ -231,8 +223,6 @@ Alternative: A hybrid - few-shot for core categories plus an explicit tie-breake
 -----
 
 ## Section 5: Output Control + Format Engineering
-
----
 
 ### Q8. Executive-Ready Output
 
@@ -294,8 +284,6 @@ Alternative: Generate the technical version first, then instruct "now rewrite th
 -----
 
 ## Section 6: Meta Prompting + Self-Critique
-
----
 
 ### Q10. Self-Improving Prompt
 
@@ -362,8 +350,6 @@ Alternative: Pairwise comparison variant - give the evaluator two prompts and as
 
 ## Section 7: Real Failure Simulation
 
----
-
 ### Q12. When the Model is Wrong
 
 My prompt:
@@ -393,8 +379,6 @@ Alternative: Have the model generate the 2-3 most likely alternative answers fir
 -----
 
 ## Final Challenge
-
----
 
 ### Q13. Design a Prompting Strategy (Not Just Prompt)
 
